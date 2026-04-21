@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mi Día Personal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f7;color:#222;font-size:14px}
+.app{max-width:860px;margin:0 auto;padding:20px 16px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+h1{font-size:21px;font-weight:800;color:#2d1b6e}
+.fecha{font-size:13px;color:#888;font-weight:500}
+.subtitle{font-size:12px;color:#aaa;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.sync-status{font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700}
+.sync-ok{background:#D1FAE5;color:#065f46}
+.sync-err{background:#FDE8E8;color:#b91c1c}
+.sync-loading{background:#FEF3C7;color:#92400e}
+.modo-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center}
+.modo-btn{padding:7px 16px;border-radius:20px;border:2px solid #2d1b6e;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.modo-btn.active{background:#2d1b6e;color:#fff}
+.modo-btn:not(.active){background:#fff;color:#2d1b6e}
+.modo-label{font-size:12px;color:#888}
+.card{background:#fff;border-radius:12px;border:1px solid #e2e6f0;padding:16px 20px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
+.card-title{font-size:12px;font-weight:800;color:#2d1b6e;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.prog-row{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:4px}
+.prog-bar{height:9px;background:#ebebf5;border-radius:5px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#2d1b6e);border-radius:5px;transition:width .3s}
+.msg-ok{color:#7c3aed;font-weight:700;font-size:13px;margin-top:8px;display:none}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:800;color:#aaa;padding:6px 8px;border-bottom:1px solid #f0f0f0;text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 8px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.pri{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:800;white-space:nowrap}
+.pri-a{background:#FDE8E8;color:#b91c1c}
+.pri-m{background:#FEF3C7;color:#92400e}
+.pri-b{background:#D1FAE5;color:#065f46}
+.btn{border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.82}
+.btn-ini{background:#7c3aed;color:#fff}
+.btn-ter{background:#dc2626;color:#fff}
+.btn-done{background:#f0f0f0;color:#aaa;cursor:default}
+.btn-del{background:#f0f0f0;color:#999;margin-left:4px;font-size:12px}
+.hora{font-size:12px;color:#666;white-space:nowrap}
+.dur{font-size:12px;font-weight:700;color:#2d1b6e}
+.timer-cell{font-size:12px;color:#dc2626;font-weight:700}
+.task-name{font-size:13px;font-weight:600;color:#222}
+.task-name.done{text-decoration:line-through;color:#bbb}
+.nota-input{font-size:12px;border:1px solid #e0e0e0;border-radius:5px;padding:3px 7px;width:110px;color:#555}
+.plan-area{width:100%;border:1.5px dashed #c4b5fd;border-radius:8px;padding:10px 12px;font-size:13px;min-height:90px;resize:vertical;color:#333;background:#faf7ff}
+.plan-area:focus{outline:2px solid #7c3aed}
+.plan-hint{font-size:11px;color:#aaa;margin-top:6px}
+.plan-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn-plan{padding:8px 16px;border-radius:7px;font-weight:700;font-size:13px;border:none;cursor:pointer}
+.btn-guardar{background:#7c3aed;color:#fff}
+.btn-limpiar{background:#f0f0f0;color:#666}
+.add-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.add-row input{flex:1;min-width:160px;padding:8px 12px;border:1px solid #d5d5e8;border-radius:7px;font-size:13px}
+.add-row select{padding:8px;border:1px solid #d5d5e8;border-radius:7px;font-size:12px;color:#444}
+.add-row button{padding:8px 14px;background:#2d1b6e;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer}
+.hist-table th{font-size:10px}
+.hist-table td{padding:5px 8px;font-size:12px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.btn-acc{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer}
+.btn-exp{background:#2d1b6e;color:#fff}
+.btn-mes{background:#dc2626;color:#fff}
+.btn-rst{background:#ebebf5;color:#555}
+.seccion{display:none}
+.seccion.visible{display:block}
+.badge{display:inline-block;background:#7c3aed;color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 8px;margin-left:6px}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #ccc;border-top-color:#7c3aed;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🌟 Mi Día Personal</h1>
+    <span class="fecha" id="fecha-hoy"></span>
+  </div>
+  <div class="subtitle">
+    Gestión personal de tiempo y hábitos — Natan
+    <span class="sync-status sync-loading" id="sync-status">⏳ Conectando...</span>
+  </div>
+
+  <div class="modo-bar">
+    <button class="modo-btn active" id="btn-modo-dia" onclick="setModo('dia')">☀️ Modo Día</button>
+    <button class="modo-btn" id="btn-modo-noche" onclick="setModo('noche')">🌙 Modo Noche</button>
+    <span class="modo-label" id="modo-label">Checklist activo</span>
+  </div>
+
+  <!-- MODO DÍA -->
+  <div class="seccion visible" id="sec-dia">
+    <div class="card">
+      <div class="prog-row">
+        <span id="prog-text">0 de 0 tareas completadas</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="msg-ok" id="msg-ok">🎉 ¡Día completado! Excelente trabajo, Natan.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tareas de hoy <span class="badge" id="badge-count">0</span></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Tarea</th><th>Prioridad</th><th>Inicio</th><th>Término</th><th>Duración</th><th>Nota</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="task-body"></tbody>
+      </table>
+      <div class="add-row">
+        <input type="text" id="new-task-input" placeholder="Agregar tarea extra del día..."/>
+        <select id="new-task-pri">
+          <option value="a">🔴 Alta</option>
+          <option value="m" selected>🟡 Media</option>
+          <option value="b">🟢 Baja</option>
+        </select>
+        <button onclick="addTask()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Historial del mes</div>
+      <table class="hist-table">
+        <thead><tr><th>Fecha</th><th>Tarea</th><th>Inicio</th><th>Término</th><th>Duración</th><th>Prioridad</th><th>Nota</th></tr></thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+      <div style="margin-top:6px;font-size:12px;color:#ccc" id="hist-empty">Sin registros este mes aún.</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-acc btn-mes" onclick="cerrarMes()">📁 Cerrar mes</button>
+      <button class="btn-acc btn-rst" onclick="reiniciarDia()">↺ Reiniciar día</button>
+      <button class="btn-acc" style="background:#ebebf5;color:#555" onclick="cargarHistorial()">🔄 Sincronizar</button>
+    </div>
+  </div>
+
+  <!-- MODO NOCHE -->
+  <div class="seccion" id="sec-noche">
+    <div class="card">
+      <div class="card-title">🌙 Planificación para mañana</div>
+      <p style="font-size:12px;color:#888;margin-bottom:10px">Escribe las tareas adicionales que quieres tener listas mañana. Las tareas fijas ya están cargadas automáticamente.</p>
+      <textarea class="plan-area" id="plan-textarea" placeholder="Ej:&#10;- Llamar al banco&#10;- Revisar presupuesto del emprendimiento&#10;- Comprar materiales"></textarea>
+      <p class="plan-hint">Cada línea que empiece con "-" o "•" se convertirá en una tarea al día siguiente.</p>
+      <div class="plan-actions">
+        <button class="btn-plan btn-guardar" onclick="guardarPlan()">💾 Guardar para mañana</button>
+        <button class="btn-plan btn-limpiar" onclick="limpiarPlan()">✕ Limpiar</button>
+      </div>
+      <p style="font-size:12px;color:#7c3aed;margin-top:10px;display:none" id="plan-ok">✔ Guardado. Mañana aparecerán tus tareas listas.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Tareas fijas que tendrás mañana</div>
+      <table>
+        <thead><tr><th>Tarea</th><th>Prioridad</th></tr></thead>
+        <tbody id="fixed-preview"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrWo7-iI0CjQP5yF0s8peRRk96nmn9u5JoXuui1t2i3jaNYn0EKQcah-KuKYcgSTpzZQ/exec";
+
+const FIXED = [
+  {id:'f1', text:'Meditación',                     pri:'a'},
+  {id:'f2', text:'Ejercicio',                       pri:'a'},
+  {id:'f3', text:'Trabajo en CODINER',              pri:'a'},
+  {id:'f4', text:'Master IA y Gestión Empresarial', pri:'m'},
+  {id:'f5', text:'Comenzar Emprendimiento',         pri:'m'},
+  {id:'f6', text:'Lectura',                         pri:'b'},
+];
+const PRI_LABEL = {a:'Alta', m:'Media', b:'Baja'};
+const PRI_CLASS = {a:'pri-a', m:'pri-m', b:'pri-b'};
+const PRI_EMOJI = {a:'🔴', m:'🟡', b:'🟢'};
+
+const K_STATE  = 'cp3_state';
+const K_EXTRAS = 'cp3_extras';
+const K_DATE   = 'cp3_date';
+const K_NOTAS  = 'cp3_notas';
+const K_PLAN   = 'cp3_plan';
+
+let state={}, extras=[], notas={}, hist=[], timers={};
+
+// ── HELPERS ──────────────────────────────────────────────────
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function nowStr(){return new Date().toTimeString().slice(0,5)}
+function dateLabel(){
+  const D=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const d=new Date();
+  return D[d.getDay()]+', '+d.getDate()+' de '+M[d.getMonth()]+' de '+d.getFullYear();
+}
+function duracion(ini,ter){
+  if(!ini||!ter) return '-';
+  const [h1,m1]=ini.split(':').map(Number);
+  const [h2,m2]=ter.split(':').map(Number);
+  const diff=(h2*60+m2)-(h1*60+m1);
+  if(diff<0) return '-';
+  return (Math.floor(diff/60)>0?Math.floor(diff/60)+'h ':'')+diff%60+'min';
+}
+function durSecs(ini){
+  const [h1,m1]=ini.split(':').map(Number);
+  const n=new Date(), diff=(n.getHours()*60+n.getMinutes())-(h1*60+m1);
+  if(diff<0) return '0min';
+  return (Math.floor(diff/60)>0?Math.floor(diff/60)+'h ':'')+diff%60+'min';
+}
+function setSyncStatus(tipo, msg){
+  const el=document.getElementById('sync-status');
+  el.className='sync-status sync-'+tipo;
+  el.textContent=msg;
+}
+
+// ── GOOGLE SHEETS ─────────────────────────────────────────────
+async function enviarASheets(registro){
+  try {
+    await fetch(SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'guardar', ...registro})
+    });
+    setSyncStatus('ok','✔ Sincronizado con Google Sheets');
+  } catch(e){
+    setSyncStatus('err','✖ Sin conexión — guardado local');
+  }
+}
+
+async function cargarHistorial(){
+  setSyncStatus('loading','⏳ Cargando...');
+  try {
+    const res = await fetch(SCRIPT_URL+'?t='+Date.now());
+    const data = await res.json();
+    if(data.ok && data.rows && data.rows.length > 1){
+      hist = data.rows.slice(1).map(r=>({
+        fecha:r[0], tarea:r[1], inicio:r[2], termino:r[3],
+        dur:r[4], pri:r[5], nota:r[6]||'', tipo:r[7]||'Personal'
+      }));
+      setSyncStatus('ok','✔ Sincronizado con Google Sheets');
+    } else {
+      hist=[];
+      setSyncStatus('ok','✔ Conectado — sin registros aún');
+    }
+    renderHist();
+  } catch(e){
+    setSyncStatus('err','✖ Sin conexión — datos locales');
+  }
+}
+
+async function cerrarMesSheets(){
+  const mes=new Date().toISOString().slice(0,7);
+  try {
+    await fetch(SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'cerrarMes', mes})
+    });
+    setSyncStatus('ok','✔ Mes cerrado en Google Sheets');
+  } catch(e){
+    setSyncStatus('err','✖ Error al cerrar mes en Sheets');
+  }
+}
+
+// ── LOCAL STORAGE ─────────────────────────────────────────────
+function loadLocal(){
+  const savedDate=localStorage.getItem(K_DATE)||'';
+  const today=todayStr();
+  if(savedDate!==today){
+    state={}; notas={};
+    extras=[];
+    const plan=localStorage.getItem(K_PLAN)||'';
+    if(plan){
+      plan.split('\n').forEach(line=>{
+        const t=line.replace(/^[-•]\s*/,'').trim();
+        if(t){
+          const id='ex_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+          extras.push({id,text:t,pri:'m'});
+        }
+      });
+      localStorage.removeItem(K_PLAN);
+    }
+    localStorage.setItem(K_DATE,today);
+  } else {
+    state=JSON.parse(localStorage.getItem(K_STATE)||'{}');
+    extras=JSON.parse(localStorage.getItem(K_EXTRAS)||'[]');
+    notas=JSON.parse(localStorage.getItem(K_NOTAS)||'{}');
+  }
+}
+function saveLocal(){
+  localStorage.setItem(K_STATE,JSON.stringify(state));
+  localStorage.setItem(K_EXTRAS,JSON.stringify(extras));
+  localStorage.setItem(K_NOTAS,JSON.stringify(notas));
+  localStorage.setItem(K_DATE,todayStr());
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function allTasks(){
+  return FIXED.map(f=>({...f,fixed:true})).concat(extras.map(e=>({...e,fixed:false})));
+}
+
+function render(){
+  document.getElementById('fecha-hoy').textContent=dateLabel();
+  const tasks=allTasks();
+  const orden={a:0,m:1,b:2};
+  tasks.sort((a,b)=>{
+    const sa=state[a.id]||{}, sb=state[b.id]||{};
+    const da=sa.done?2:(sa.inicio?1:0), db=sb.done?2:(sb.inicio?1:0);
+    if(orden[a.pri]!==orden[b.pri]) return orden[a.pri]-orden[b.pri];
+    return da-db;
+  });
+
+  const tbody=document.getElementById('task-body');
+  tbody.innerHTML='';
+  let done=0;
+  tasks.forEach(t=>{
+    const s=state[t.id]||{};
+    const isDone=!!s.done;
+    if(isDone) done++;
+    const tr=document.createElement('tr');
+
+    const tdN=document.createElement('td');
+    tdN.innerHTML=`<span class="task-name${isDone?' done':''}">${t.text}</span>`;
+    tr.appendChild(tdN);
+
+    const tdP=document.createElement('td');
+    tdP.innerHTML=`<span class="pri ${PRI_CLASS[t.pri]}">${PRI_EMOJI[t.pri]} ${PRI_LABEL[t.pri]}</span>`;
+    tr.appendChild(tdP);
+
+    const tdI=document.createElement('td');
+    tdI.className='hora'; tdI.textContent=s.inicio||'-';
+    tr.appendChild(tdI);
+
+    const tdTer=document.createElement('td');
+    tdTer.className='hora'; tdTer.textContent=s.termino||'-';
+    tr.appendChild(tdTer);
+
+    const tdD=document.createElement('td');
+    if(s.inicio&&!s.termino){
+      tdD.className='timer-cell'; tdD.id='timer-'+t.id;
+      tdD.textContent=durSecs(s.inicio);
+    } else {
+      tdD.className='dur'; tdD.textContent=duracion(s.inicio,s.termino);
+    }
+    tr.appendChild(tdD);
+
+    const tdNota=document.createElement('td');
+    const inp=document.createElement('input');
+    inp.type='text'; inp.className='nota-input';
+    inp.placeholder='Nota...'; inp.value=notas[t.id]||'';
+    inp.onchange=()=>{notas[t.id]=inp.value; saveLocal();};
+    tdNota.appendChild(inp);
+    tr.appendChild(tdNota);
+
+    const tdA=document.createElement('td');
+    if(!s.inicio){
+      const b=document.createElement('button');
+      b.className='btn btn-ini'; b.textContent='▶ Iniciar';
+      b.onclick=()=>iniciar(t.id);
+      tdA.appendChild(b);
+    } else if(!s.termino){
+      const b=document.createElement('button');
+      b.className='btn btn-ter'; b.textContent='■ Terminar';
+      b.onclick=()=>terminar(t,s);
+      tdA.appendChild(b);
+    } else {
+      const b=document.createElement('button');
+      b.className='btn btn-done'; b.textContent='✔ Hecho'; b.disabled=true;
+      tdA.appendChild(b);
+    }
+    if(!t.fixed){
+      const bd=document.createElement('button');
+      bd.className='btn btn-del'; bd.textContent='✕';
+      bd.onclick=()=>eliminarExtra(t.id);
+      tdA.appendChild(bd);
+    }
+    tr.appendChild(tdA);
+    tbody.appendChild(tr);
+  });
+
+  const total=tasks.length;
+  const pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('prog-text').textContent=done+' de '+total+' tareas completadas';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('badge-count').textContent=total;
+  document.getElementById('msg-ok').style.display=(total>0&&done===total)?'block':'none';
+  renderHist();
+  renderFixedPreview();
+}
+
+function iniciar(id){
+  if(!state[id]) state[id]={};
+  state[id].inicio=nowStr();
+  saveLocal(); render();
+  if(timers[id]) clearInterval(timers[id]);
+  timers[id]=setInterval(()=>{
+    const el=document.getElementById('timer-'+id);
+    if(el&&state[id]&&state[id].inicio&&!state[id].termino) el.textContent=durSecs(state[id].inicio);
+    else clearInterval(timers[id]);
+  },30000);
+}
+
+async function terminar(t,s){
+  const ter=nowStr();
+  state[t.id].termino=ter;
+  state[t.id].done=true;
+  if(timers[t.id]) clearInterval(timers[t.id]);
+  const registro={
+    fecha:todayStr(), tarea:t.text,
+    inicio:s.inicio, termino:ter,
+    dur:duracion(s.inicio,ter),
+    pri:PRI_LABEL[t.pri],
+    nota:notas[t.id]||'',
+    tipo:'Personal'
+  };
+  hist.push(registro);
+  saveLocal();
+  render();
+  await enviarASheets(registro);
+}
+
+function eliminarExtra(id){
+  extras=extras.filter(e=>e.id!==id);
+  delete state[id]; delete notas[id];
+  saveLocal(); render();
+}
+
+function addTask(){
+  const inp=document.getElementById('new-task-input');
+  const sel=document.getElementById('new-task-pri');
+  const val=inp.value.trim();
+  if(!val) return;
+  const id='ex_'+Date.now();
+  extras.push({id,text:val,pri:sel.value});
+  inp.value=''; saveLocal(); render();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.activeElement.id==='new-task-input') addTask();
+});
+
+function renderHist(){
+  const tbody=document.getElementById('hist-body');
+  tbody.innerHTML='';
+  const empty=document.getElementById('hist-empty');
+  if(hist.length===0){empty.style.display='block';return;}
+  empty.style.display='none';
+  [...hist].reverse().forEach(h=>{
+    const pc=h.pri==='Alta'?'pri-a':h.pri==='Media'?'pri-m':'pri-b';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${h.fecha}</td><td>${h.tarea}</td><td class="hora">${h.inicio||'-'}</td><td class="hora">${h.termino||'-'}</td><td class="dur">${h.dur||'-'}</td><td><span class="pri ${pc}">${h.pri}</span></td><td style="font-size:11px;color:#888">${h.nota||''}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderFixedPreview(){
+  const tbody=document.getElementById('fixed-preview');
+  tbody.innerHTML='';
+  FIXED.forEach(f=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="task-name">${f.text}</td><td><span class="pri ${PRI_CLASS[f.pri]}">${PRI_EMOJI[f.pri]} ${PRI_LABEL[f.pri]}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function setModo(m){
+  document.getElementById('sec-dia').className='seccion'+(m==='dia'?' visible':'');
+  document.getElementById('sec-noche').className='seccion'+(m==='noche'?' visible':'');
+  document.getElementById('btn-modo-dia').className='modo-btn'+(m==='dia'?' active':'');
+  document.getElementById('btn-modo-noche').className='modo-btn'+(m==='noche'?' active':'');
+  document.getElementById('modo-label').textContent=m==='dia'?'Checklist activo':'Planifica para mañana';
+  if(m==='noche'){
+    document.getElementById('plan-textarea').value=localStorage.getItem(K_PLAN)||'';
+  }
+}
+
+function guardarPlan(){
+  const val=document.getElementById('plan-textarea').value.trim();
+  localStorage.setItem(K_PLAN,val);
+  const ok=document.getElementById('plan-ok');
+  ok.style.display='block';
+  setTimeout(()=>ok.style.display='none',3000);
+}
+function limpiarPlan(){
+  document.getElementById('plan-textarea').value='';
+  localStorage.removeItem(K_PLAN);
+}
+
+async function cerrarMes(){
+  if(!confirm('¿Cerrar el mes? Los datos quedarán archivados en Google Sheets en una hoja con el mes actual.')) return;
+  await cerrarMesSheets();
+  hist=[]; state={}; extras=[]; notas={};
+  saveLocal(); render();
+  alert('✔ Mes cerrado. Todo limpio para el mes siguiente.');
+}
+
+function reiniciarDia(){
+  if(!confirm('¿Reiniciar el día? El historial en Google Sheets se conserva.')) return;
+  state={}; notas={};
+  saveLocal(); render();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+loadLocal();
+render();
+cargarHistorial();
+</script>
+</body>
+</html>
